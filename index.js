@@ -8,27 +8,27 @@ app.get('/', (req, res) => {
 });
 
 io.on('connection', (socket) => {
-    console.log('a user connected');
     const { id } = socket.client;
     state.clients[id] = { name: id };
 
-    io.emit('chat message', {
-        sender: 'System',
-        text: 'user connected: ' + id
+    io.emit('update clients', {
+        text: 'user connected: ' + id,
+        clients: Object.values(state.clients)
     });
 
     socket.on('disconnect', () => {
-        console.log('user disconnected');
-        io.emit('chat message', {
-            sender: 'System',
-            text: 'user disconnected.'
+        const { id } = socket.client;
+        delete state.clients[id];
+        io.emit('update clients', {
+            text: 'user disconnected: ' + id,
+            clients: Object.values(state.clients)
         });
     });
 
     socket.on('chat message', (msg) => {
         const { id } = socket.client;
         const clientName = state.clients[id].name;
-        io.emit('chat message', {
+        socket.broadcast.emit('chat message', {
             sender: clientName,
             text: msg
         });

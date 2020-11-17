@@ -1,38 +1,119 @@
 <!doctype html>
 <html>
-  <head>
-    <title>Socket.IO chat</title>
+
+<head>
+    <title>Socket.IO Chat App</title>
     <style>
-      * { margin: 0; padding: 0; box-sizing: border-box; }
-      body { font: 13px Helvetica, Arial; }
-      form { background: #000; padding: 3px; position: fixed; bottom: 0; width: 100%; }
-      form input { border: 0; padding: 10px; width: 90%; margin-right: 0.5%; }
-      form button { width: 9%; background: rgb(130, 224, 255); border: none; padding: 10px; }
-      #messages { list-style-type: none; margin: 0; padding: 0; }
-      #messages li { padding: 5px 10px; }
-      #messages li:nth-child(odd) { background: #eee; }
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font: 13px Helvetica, Arial;
+        }
+
+        form {
+            background: #000;
+            padding: 3px;
+            position: fixed;
+            bottom: 0;
+            width: 100%;
+        }
+
+        form input {
+            border: 0;
+            padding: 10px;
+            width: 90%;
+            margin-right: 0.5%;
+        }
+
+        form button {
+            width: 9%;
+            background: rgb(130, 224, 255);
+            border: none;
+            padding: 10px;
+        }
+
+        .top-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 100px;
+        }
+
+        #messages {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 200px;
+            overflow: auto;
+        }
+
+        #clients {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 200px;
+            right: 0;
+            overflow: auto;
+            border: #000 solid 2px;
+        }
+
+        #messages li,
+        #clients li {
+            padding: 5px 10px;
+        }
+
+        #clients li {
+            background-color: rgb(212, 205, 233);
+        }
+
+        #messages li:nth-child(odd) {
+            background: #eee;
+        }
+
+        #clients li:nth-child(odd) {
+            background: rgb(134, 142, 216);
+        }
     </style>
-  </head>
-  <body>
-    <ul id="messages"></ul>
+</head>
+
+<body>
+    <div class="top-container">
+        <ul id="messages"></ul>
+        <ul id="clients"></ul>
+    </div>
     <form action="">
-      <input id="m" autocomplete="off" /><button>Send</button>
+        <input id="m" autocomplete="off" /><button>Send</button>
     </form>
     <script src="/socket.io/socket.io.js"></script>
     <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script>
         $(function () {
             var socket = io();
-            $('form').submit(function(e) {
-            e.preventDefault(); // prevents page reloading
-            socket.emit('chat message', $('#m').val());
-            $('#m').val('');
-            return false;
+            $('form').submit((e) => {
+                e.preventDefault(); // prevents page reloading
+                const myMsg = $('#m').val();
+                $('#messages').append($('<li>').text('Myself: ' + myMsg));
+                $('#m').val('');
+                socket.emit('chat message', myMsg);
+                return false;
             });
-            socket.on('chat message', function(msg){
-                $('#messages').append($('<li>').text(msg.sender+': '+msg.text));
+            socket.on('chat message', (data) => {
+                $('#messages').append($('<li>').text(data.sender + ': ' + data.text));
             });
+            socket.on('update clients', data => {
+                const clients = $("#clients");
+                clients.empty();
+                data.clients.forEach(client => clients.append($('<li>').text(client.name)));
+                $('#messages').append($('<li>').text('System: ' + data.text));
+            })
         });
     </script>
-  </body>
+</body>
+
 </html>
